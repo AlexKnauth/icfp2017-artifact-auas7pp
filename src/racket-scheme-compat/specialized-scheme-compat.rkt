@@ -70,6 +70,35 @@
 
 ;; Load and Include
 
+;; Examples:
+
+;; file a.scm, no loads.
+;; file a.rkt, the racket wrapper:
+;;   #lang icfp2017-minikanren/racket-scheme-compat
+;;   (provide a-public-id ...)
+;;   (include "a.scm")
+;;   (declare-racket-wrapper-for "a.scm")
+
+;; file b.scm:
+;;   (load "a.scm")
+;; file b.rkt:
+;;   #lang icfp2017-minikanren/racket-scheme-compat
+;;   (provide b-public-id ...)
+;;   (require "a.rkt")
+;;   (include "b.scm")
+;;   (declare-racket-wrapper-for "b.scm")
+;; file c.scm:
+;;   (load "a.scm")
+;;   (load "b.scm")
+;; file c.rkt:
+;;   #lang icfp2017-minikanren/racket-scheme-compat
+;;   (provide c-public-id ...)
+;;   (require "a.rkt" "b.rkt")
+;;   (include "c.scm")
+;;   (declare-racket-wrapper-for "c.scm")
+
+;; End Example.
+
 (require syntax/modresolve
          (only-in racket/include [include include])
          (for-syntax racket/base
@@ -90,8 +119,11 @@
 ;; load : ModulePath -> Void
 ;; Checks that it doesn't need to do the load. If you see an error message
 ;; from this function, then that means you haven't required or included the
-;; file yet. To fix this, in the wrapper file you should require the wrapper
-;; file of the given path.
+;; file yet. To fix this, in the wrapper file you should require the
+;; wrapper file of the given path.
+;; NOTE:
+;;   The wrapper file you require should declare itself to be a wrapper
+;;   file using declare-racket-wrapper-for.
 (define (load mp)
   (define mp* (resolve-module-path mp (current-load-relative-directory)))
   (if (member mp* (current-included-paths))
