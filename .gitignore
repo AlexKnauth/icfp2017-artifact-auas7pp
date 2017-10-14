@@ -1,3 +1,5 @@
 artifact35-auas7pp.tar
 shared
 *~
+compiled/
+doc/
