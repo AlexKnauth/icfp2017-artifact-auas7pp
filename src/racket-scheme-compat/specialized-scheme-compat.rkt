@@ -126,11 +126,13 @@
 ;;   file using declare-racket-wrapper-for.
 (define (load mp)
   (define mp* (resolve-module-path mp (current-load-relative-directory)))
-  (if (member mp* (current-included-paths))
-      (void)
-      (error 'load
-             "require the racket wrapper file for ~v"
-             mp)))
+  (cond
+    [(not (file-exists? mp*))
+     (error 'load "cannot open input file\n  path: ~a" mp*)]
+    [(not (member mp* (current-included-paths)))
+     (error 'load "require the racket wrapper file for ~v" mp)]
+    [else
+     (void)]))
 
 ;; ------------------------------------------------------------------------
 
