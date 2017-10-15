@@ -43,3 +43,6 @@
     "mk/type-infer.scm"
     ))
 
+(define test-omit-paths
+  compile-omit-paths)
+
