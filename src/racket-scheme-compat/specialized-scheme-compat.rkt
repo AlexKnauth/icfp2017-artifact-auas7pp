@@ -102,7 +102,14 @@
 (require syntax/modresolve
          (only-in racket/include [include include])
          (for-syntax racket/base
-                     syntax/path-spec))
+                     syntax/path-spec
+                     syntax/location))
+
+(begin-for-syntax
+  (define (syntax-source-path stx)
+    (define dir (syntax-source-directory stx))
+    (define file (syntax-source-file-name stx))
+    (and dir file (build-path dir file))))
 
 (define current-included-paths (make-parameter '()))
 
@@ -117,6 +124,19 @@
        #`(add-included-path! '#,(resolve-path-spec #'path stx stx))])))
 
 ;; load : ModulePath -> Void
+;; Acts like a function that checks that it doesn't need to do the load.
+(define-syntax load
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ path)
+       #`((load/rel-source '#,(syntax-source-path stx)) path)]
+      [id
+       ;guard
+       (identifier? #'id)
+       ;body
+       #`(load/rel-source '#,(syntax-source-path stx))])))
+
+;; load/rel-source : [Maybe PathString] -> [ModulePath -> Void]
 ;; Checks that it doesn't need to do the load. If you see an error message
 ;; from this function, then that means you haven't required or included the
 ;; file yet. To fix this, in the wrapper file you should require the
@@ -124,8 +144,8 @@
 ;; NOTE:
 ;;   The wrapper file you require should declare itself to be a wrapper
 ;;   file using declare-racket-wrapper-for.
-(define (load mp)
-  (define mp* (resolve-module-path mp (current-load-relative-directory)))
+(define ((load/rel-source source) mp)
+  (define mp* (resolve-module-path mp source))
   (cond
     [(not (file-exists? mp*))
      (error 'load "cannot open input file\n  path: ~a" mp*)]
