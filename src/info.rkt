@@ -7,7 +7,7 @@
 (define collection "icfp2017-minikanren")
 
 (define deps
-  '("base"
+  '(["base" #:version "6.3"]
     "r6rs-lib"
     ))
 
